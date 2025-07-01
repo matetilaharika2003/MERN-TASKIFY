@@ -32,34 +32,78 @@ export async function registerUser(req, res) {
         const token = createToken(user._id);
         res.status(201).json({ success: true, token, user: { id: user._id, name: user.name, email: user.email } });
     } catch (err) {
-        console.error(err);
+        console.error("Registration error:", err);
+        if (err.code === 11000 && err.keyValue?.email) {
+          return res.status(409).json({ success: false, message: "Email already exists." });
+        }
         res.status(500).json({ success: false, message: "Server error." });
-    }
+      }
+    // } catch (err) {
+    //     console.error(err);
+    //     res.status(500).json({ success: false, message: "Server error." });
+    // }
 }
 
 // LOGIN
+// export async function loginUser(req, res) {
+//     const { email, password } = req.body;
+//     if (!email || !password) {
+//         return res.status(400).json({ success: false, message: "Email and password required." });
+//     }
+
+//     try {
+//         const user = await User.findOne({ email });
+//         if (!user) {
+//             return res.status(401).json({ success: false, message: "Invalid credentials." });
+//         }
+//         const match = await bcrypt.compare(password, user.password);
+//         if (!match) {
+//             return res.status(401).json({ success: false, message: "Invalid credentials." });
+//         }
+//         const token = createToken(user._id);
+//         res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email } });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ success: false, message: "Server error." });
+//     }
+// }
 export async function loginUser(req, res) {
     const { email, password } = req.body;
+  
     if (!email || !password) {
-        return res.status(400).json({ success: false, message: "Email and password required." });
+      return res.status(400).json({ success: false, message: "Email and password required." });
     }
-
+  
     try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ success: false, message: "Invalid credentials." });
-        }
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(401).json({ success: false, message: "Invalid credentials." });
-        }
-        const token = createToken(user._id);
-        res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email } });
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(401).json({ success: false, message: "Invalid credentials (user not found)." });
+      }
+  
+      if (!user.password) {
+        return res.status(500).json({ success: false, message: "User has no password set." });
+      }
+  
+      const match = await bcrypt.compare(password, user.password);
+  
+      if (!match) {
+        return res.status(401).json({ success: false, message: "Invalid credentials (wrong password)." });
+      }
+  
+      const token = createToken(user._id);
+      res.json({
+        success: true,
+        token,
+        user: { id: user._id, name: user.name, email: user.email }
+      });
+  
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Server error." });
+      console.error("Login error:", err.message, err);
+      res.status(500).json({ success: false, message: "Server error during login." });
     }
-}
+  }
+  
 
 // GET CURRENT USER
 export async function getCurrentUser(req, res) {

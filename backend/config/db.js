@@ -5,18 +5,18 @@ import dotenv from 'dotenv';
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }
-
-const { MONGO_USER, MONGO_PASS, MONGO_CLUSTER, MONGO_DB } = process.env;
-const uri = `mongodb+srv://${MONGO_USER}:${MONGO_PASS}@${MONGO_CLUSTER}/${MONGO_DB}?retryWrites=true&w=majority`;
+const uri = process.env.MONGO_URI;
 
 export const connectDB = async () => {
   try {
     await mongoose.connect(uri);
-    console.log('DB CONNECTED');
+    console.log(' DB CONNECTED');
   } catch (err) {
-    console.error('DB CONNECTION ERROR:', err);
+    console.error(' DB CONNECTION ERROR:', err.message);
+    process.exit(1);
   }
 };
+
 
 
 
