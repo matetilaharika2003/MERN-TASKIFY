@@ -38,6 +38,5 @@
 | Axios, React Router |                      |           |                 |
 
 
-## 📸 Screenshots
 
 
